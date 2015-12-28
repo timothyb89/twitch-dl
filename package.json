@@ -1,0 +1,22 @@
+{
+  "name": "twitch-dl",
+  "version": "0.1.0",
+  "author": "timothyb89",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timothyb89/twitch-dl.git"
+  },
+  "dependencies": {
+    "blessed": "^0.1.81",
+    "blessed-contrib": "^2.5.2",
+    "fluent-ffmpeg": "^2.0.1",
+    "unirest": "^0.4.2",
+    "yargs": "^3.31.0"
+  },
+  "devDependencies": {},
+  "bin": {
+    "twitch-dl": "./bin/twitch-dl"
+  },
+  "license": "MIT",
+  "main": "./src/twitch-dl.js"
+}

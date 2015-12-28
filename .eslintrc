@@ -1,0 +1,16 @@
+{
+    "ecmaFeatures": {
+        "blockBindings": true,
+        "forOf": true,
+		"arrowFunctions": true,
+		"classes": true,
+		"generators": true,
+		"spread": true,
+        "templateStrings": true,
+        "destructuring": true
+    },
+    "rules": {
+        "semi": 2,
+        "indent": [2, 4, {"SwitchCase": 1}]
+    }
+}
