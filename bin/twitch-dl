@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 (function() {
-  var Twitchdl;
 
-  Twitchdl = require("../src/twitchdl");
-
-  new Twitchdl;
+    require("../src/twitchdl");
 
 }).call(this);
