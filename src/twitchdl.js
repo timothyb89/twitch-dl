@@ -1,34 +1,16 @@
 'use strict';
 
 var blessed = require('blessed');
-var unirest = require('unirest');
+var contrib = require('blessed-contrib');
+var moment = require('moment');
 var spawn = require('child_process').spawn;
 
+var api = require('./api');
+var util = require('./ui/util');
+var VideoList = require('./ui/video-list');
+var ConfigEditor = require('./ui/config-editor');
+
 var argv = require('yargs').alias('u', 'user').argv;
-
-var twitch = function(endpoint) {
-    var api = 'https://api.twitch.tv/kraken';
-
-    log('[GET] ' + api + endpoint);
-
-    return unirest
-            .get(api + endpoint)
-            .header('Accept', 'application/vnd.twitchtv.v3+json');
-};
-
-var api = {
-    video: function(id) {
-        return twitch('/videos/' + id);
-    },
-
-    user: function(user) {
-        return twitch('/users/' + user);
-    },
-
-    videos: function(user) {
-        return twitch('/channels/' + user + '/videos');
-    }
-};
 
 var screen = blessed.screen({
     smartCSR: true,
@@ -36,112 +18,83 @@ var screen = blessed.screen({
     debug: true
 });
 
+util.init(screen);
+
 screen.key(['escape', 'q', 'C-c'], function(ch, key) {
-    return screen.destroy();
+    screen.destroy();
+    process.exit(0);
 });
 
-var prompt = blessed.prompt({
-    parent: screen,
-    border: 'line',
-    top: 'center',
-    left: 'center',
-    width: '50%',
-    height: 'shrink',
-    label: ' {blue-fg}Prompt{/blue-fg} ',
-    tags: true,
-    keys: true,
-    hidden: true,
-});
-
-var msg = blessed.message({
-    parent: screen,
-    border: 'line',
-    top: 'center',
-    left: 'center',
-    width: '50%',
-    height: 'shrink',
-    label: ' {blue-fg}Alert{/blue-fg} ',
-    tags: true,
-    keys: true,
-    hidden: true,
-});
-
-var videoData = [];
-var videos = blessed.listtable({
+var bar = blessed.listbar({
     parent: screen,
     border: 'line',
     top: 0,
-    bottom: 10,
-    width: '100%',
-    label: 'Videos',
-    align: 'left',
-    keys: true,
-    tags: true,
-    style: {
-        header: { bg: 'white', fg: 'black' },
-        cell: {
-            selected: {
-                bg: 'blue'
-            }
-        }
-    }
-});
-
-videos.on('select', function(el, index) {
-    var v = videoData[index - 1];
-    log(v);
-});
-
-var logger = blessed.log({
-    parent: screen,
-    label: ' Debug Log ',
+    left: 0,
+    right: 0,
+    height: 3,
     mouse: true,
-    scrollbar: true,
-    border: 'line',
-    width: '100%',
-    height: 10,
-    bottom: 0,
+    keys: true,
+    autoCommandKeys: true,
     style: {
-        scrollbar: { bg: 'blue' }
+        prefix: { fg: 'white' },
+        selected: { bg: 'blue' }
     }
 });
 
-prompt.setIndex(99);
-msg.setIndex(99);
-
-var log = function(text) {
-    logger.log(text);
-    screen.render();
+var defaults = {
+    parent: screen,
+    border: 'line',
+    top: 3,
+    bottom: 10,
+    left: 0,
+    right: 0,
 };
+
+var videos = new VideoList(defaults);
+var config = new ConfigEditor(defaults);
+
+var screens = [
+    { title: 'Videos', element: videos },
+    { title: 'Configuration', element: config }
+];
+
+var hideAll = function() {
+    for (let s of screens) {
+        s.element.hide();
+    }
+};
+
+screens.forEach(function(s, index) {
+    s.index = index;
+    s.show = function() {
+        hideAll();
+        s.element.show();
+    };
+
+    bar.add({ text: s.title, callback: s.show });
+});
+
+screens[0].show();
+util.postinit();
 
 var loadVideos = function(user) {
     api.videos(user.name).query({broadcasts: 'true'}).end(function(response) {
         if (response.code !== 200) {
-            msg.display('Could not load videos!', -1, function() {
+            util.display('Could not load videos!', -1, function() {
                 screen.destroy();
                 process.exit(0);
             });
         }
 
-        videoData = response.body.videos;
+        videos.setVideos(response.body.videos);
 
-        var data = [['Title', 'Game', 'Date']];
-        for (let video of videoData) {
-            data.push([
-                video.title,
-                video.game || '',
-                video.recorded_at
-            ]);
-        }
-
-        videos.setData(data);
-        videos.focus();
+        videos.list.focus();
     });
 };
 
 var getUserData = function(user) {
     if (!user) {
-        prompt.input('User?', '', function(err, value) {
+        util.input('User?', '', function(err, value) {
             if (!value) {
                 screen.destroy();
                 console.log('Okay, quitting!');
@@ -157,7 +110,7 @@ var getUserData = function(user) {
     api.user(user).end(function(response) {
         if (response.code !== 200) {
 
-            msg.display(
+            util.display(
                     `Invalid user '${user}', try again.`,
                     err => getUserData(null));
             return;

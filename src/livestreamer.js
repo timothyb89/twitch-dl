@@ -17,7 +17,18 @@ var livestreamer = new Promise(function(resolve, reject) {
     });
 });
 
+/**
+ * A Downloader that uses livestreamer to locally store twitch VODs.
+ */
 class Downloader extends EventEmitter {
+
+    /**
+     * Creates a Downloader. This immediately launches livestreamer (once it has
+     * been resolved on from the system path) and will begin emitting progress
+     * events.
+     * @param  {string} url    the URL of the VOD to download
+     * @param  {string} output the output file path
+     */
     constructor(url, output) {
         super();
 
@@ -28,6 +39,12 @@ class Downloader extends EventEmitter {
         });
     }
 
+    /**
+     * Called when the child process prints a line to stderr. If this matches
+     * the `STATUS_REGEX`, parse it and emit a progress event.
+     * @private
+     * @param  {Buffer} data the
+     */
     _onDataErr(data) {
         var matches = STATUS_REGEX.exec(data.toString());
         if (matches) {
@@ -39,6 +56,11 @@ class Downloader extends EventEmitter {
         }
     }
 
+    /**
+     * Called when the child process emits a `close` event.
+     * @private
+     * @param  {number} code the return code of the child livestreamer process
+     */
     _onClose(code) {
         if (code === 0) {
             this.emit('finish');
