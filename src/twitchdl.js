@@ -7,7 +7,10 @@ var spawn = require('child_process').spawn;
 
 var api = require('./api');
 var util = require('./ui/util');
+
 var VideoList = require('./ui/video-list');
+var DownloadQueue = require('./ui/download-queue');
+var EncodeQueue = require('./ui/encode-queue');
 var ConfigEditor = require('./ui/config-editor');
 
 var argv = require('yargs').alias('u', 'user').argv;
@@ -51,10 +54,14 @@ var defaults = {
 };
 
 var videos = new VideoList(defaults);
+var downloads = new DownloadQueue(defaults);
+var encodes = new EncodeQueue(defaults);
 var config = new ConfigEditor(defaults);
 
 var screens = [
     { title: 'Videos', element: videos },
+    { title: 'Downloads', element: downloads },
+    { title: 'Encodes', element: encodes },
     { title: 'Configuration', element: config }
 ];
 
@@ -69,6 +76,7 @@ screens.forEach(function(s, index) {
     s.show = function() {
         hideAll();
         s.element.show();
+        s.element.focus();
     };
 
     bar.add({ text: s.title, callback: s.show });

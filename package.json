@@ -10,6 +10,7 @@
     "blessed": "^0.1.81",
     "blessed-contrib": "^2.5.2",
     "fluent-ffmpeg": "^2.0.1",
+    "js-quantities": "^1.6.0",
     "merge": "^1.2.0",
     "moment": "^2.10.6",
     "unirest": "^0.4.2",

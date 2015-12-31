@@ -7,6 +7,8 @@ var moment = require('moment');
 
 var util = require('./util');
 
+var DownloadDialog = require('./download-dialog');
+
 class VideoList extends blessed.Box {
     constructor(options) {
         super(merge({
@@ -18,7 +20,7 @@ class VideoList extends blessed.Box {
             parent: this,
             border: 'line',
             top: 0,
-            bottom: 10,
+            bottom: 0,
             left: 0,
             right: 0,
             label: 'Videos',
@@ -43,33 +45,19 @@ class VideoList extends blessed.Box {
             if (!v) {
                 return;
             }
-            
-            util.log(`Selected: ${v.title}`);
-        });
 
-        this.list.on('select item', (el, index, x) => {
-            var v = this.videos[index - 1];
-            if (!v) {
-                return;
-            }
-
-            util.log(`Highlighed: ${v.title}`);
-        });
-
-        this.spark = contrib.sparkline({
-            parent: this,
-            label: ' Download Progress ',
-            border: 'line',
-            width: '50%',
-            height: 10,
-            bottom: 0,
-            right: 0,
-            style: {
-                scrollbar: { bg: 'blue' }
-            }
+            var dialog = new DownloadDialog({
+                parent: this,
+                top: 'center',
+                left: 'center'
+            }, v);
         });
     }
 
+    /**
+     * Set the displayed list of videos.
+     * @param {video[]} videos the list of videos
+     */
     setVideos(videos) {
         this.videos = videos;
 

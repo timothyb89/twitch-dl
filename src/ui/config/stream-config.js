@@ -11,11 +11,8 @@ class StreamConfig extends blessed.Form {
         super(merge({
             mouse: true,
             keys: true,
-            scrollable: true,
-            label: ' Stream Download Settings ',
-            padding: { top: 1, left: 1, bottom: 1, right: 1 },
             width: 'shrink',
-            height: 12
+            height: 10
         }, options));
 
         this.qualityLabel = blessed.text({
@@ -69,6 +66,45 @@ class StreamConfig extends blessed.Form {
             name: 'metadata'
         });
 
+        this.quality.on('focus', () => this.quality.readInput());
+
+        config.then((config) => {
+            this.quality.setValue(config.stream.quality);
+
+            if (config.stream.thumbnails === true) {
+                this.thumbnails.check();
+            }
+
+            if (config.stream.metadata === true) {
+                this.metadata.check();
+            }
+
+            this.screen.render();
+        });
+
+        // the text box seems to think that it has no left offset when
+        // positioning the cursor, and will be on top of the quality label even
+        // though it shouldn't overlap
+        // (but only when spawned with 'center'?)
+        // moving it up the render stack seems to work around the bug, but the
+        // cursor is still moved too far to the left
+        this.qualityLabel.setIndex(50); // ???
+    }
+
+    sanitize(data) {
+        return data;
+    }
+}
+
+class StreamConfigDialog extends StreamConfig {
+    constructor(options) {
+        super(merge({
+            label: ' Stream Download Settings ',
+            border: 'line',
+            padding: { top: 1, left: 1, bottom: 1, right: 1 },
+            height: 12
+        }, options));
+
         this.submitButton = blessed.button({
             parent: this,
             keys: true,
@@ -109,38 +145,23 @@ class StreamConfig extends blessed.Form {
             }
         });
 
-        this.quality.on('focus', () => this.quality.readInput());
-        this.submitButton.on('press', () => this.submit());
-        this.cancelButton.on('press', () => this.cancel());
-
-        this.on('submit', function(d) {
-            util.log(d);
-        });
-
         this.on('focus', () => this.submitButton.focus());
 
-        config.then((config) => {
-            this.quality.setValue(config.stream.quality);
-
-            if (config.stream.thumbnails === true) {
-                this.thumbnails.check();
-            }
-
-            if (config.stream.metadata === true) {
-                this.metadata.check();
-            }
-
-            this.screen.render();
-        });
-
-        // the text box seems to think that it has no left offset when
-        // positioning the cursor, and will be on top of the quality label even
-        // though it shouldn't overlap
-        // (but only when spawned with 'center'?)
-        // moving it up the render stack seems to work around the bug, but the
-        // cursor is still moved too far to the left
-        this.qualityLabel.setIndex(50); // ???
+        this.submitButton.on('press', () => this.submit());
+        this.cancelButton.on('press', () => this.cancel());
     }
-}
 
-module.exports = StreamConfig;
+    sanitize(data) {
+        var clone = merge(true, data);
+
+        delete clone.cancel;
+        delete clone.submit;
+
+        return clone;
+    }
+};
+
+module.exports = {
+    StreamConfig: StreamConfig,
+    StreamConfigDialog: StreamConfigDialog
+};
