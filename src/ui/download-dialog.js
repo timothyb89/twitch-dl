@@ -31,7 +31,7 @@ class DownloadDialog extends blessed.Box {
 
         this.video = video;
 
-        this.settings = new StreamConfig({
+        this.steamConfig = new StreamConfig({
             parent: this,
             top: 0,
             left: 0,
