@@ -56,7 +56,18 @@ let first = function(type) {
     return pool.pop();
 };
 
+let get = function(name) {
+    for (let p of plugins) {
+        if (p.name === name) {
+            return p;
+        }
+    }
+
+    return null;
+};
+
 module.exports = {
     all: all,
-    first: first
+    first: first,
+    get : get
 };

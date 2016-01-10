@@ -2,6 +2,7 @@
 
 class Plugin {
     constructor() {
+        this.name = 'plugin';
         this.type = 'plugin';
         this.priority = 0;
     }
