@@ -6,7 +6,7 @@ var merge = require('merge');
 var config = require('../../config');
 var util = require('../util');
 
-class StreamConfig extends blessed.Form {
+class CommandConfig extends blessed.Form {
     constructor(options) {
         super(merge({
             mouse: true,
@@ -15,24 +15,24 @@ class StreamConfig extends blessed.Form {
             height: 10
         }, options));
 
-        this.qualityLabel = blessed.text({
+        this.livestreamerLabel = blessed.text({
             parent: this,
             top: 0,
             left: 1,
-            width: 8,
+            width: 13,
             height: 1,
-            content: 'Quality:'
+            content: 'livestreamer:'
         });
 
-        this.quality = blessed.textbox({
+        this.livestreamer = blessed.textbox({
             parent: this,
             keys: true,
             mouse: true,
             top: 0,
-            left: 10,
-            width: 20,
+            left: 15,
+            width: 40,
             height: 1,
-            name: 'quality',
+            name: 'livestreamer',
             style: {
                 fg: 'black',
                 bg: 'white',
@@ -42,42 +42,77 @@ class StreamConfig extends blessed.Form {
             }
         });
 
-        this.thumbnails = blessed.checkbox({
+        this.ffmpegLabel = blessed.text({
+            parent: this,
+            top: 2,
+            left: 1,
+            width: 8,
+            height: 1,
+            content: 'ffmpeg:'
+        });
+
+        this.ffmpeg = blessed.textbox({
             parent: this,
             keys: true,
             mouse: true,
             top: 2,
-            left: 10,
-            width: 'shrink',
+            left: 15,
+            width: 40,
             height: 1,
-            content: 'Save Thumbnails',
-            name: 'thumbnails'
+            name: 'ffmpeg',
+            style: {
+                fg: 'black',
+                bg: 'white',
+                focus: {
+                    bg: 'cyan'
+                }
+            }
         });
 
-        this.metadata = blessed.checkbox({
+        this.ffprobeLabel = blessed.text({
+            parent: this,
+            top: 4,
+            left: 1,
+            width: 8,
+            height: 1,
+            content: 'ffprobe:'
+        });
+
+        this.ffprobe = blessed.textbox({
             parent: this,
             keys: true,
             mouse: true,
             top: 4,
-            left: 10,
-            width: 'shrink',
+            left: 15,
+            width: 40,
             height: 1,
-            content: 'Save Metadata',
-            name: 'metadata'
+            name: 'ffprobe',
+            style: {
+                fg: 'black',
+                bg: 'white',
+                focus: {
+                    bg: 'cyan'
+                }
+            }
         });
 
-        this.quality.on('focus', () => this.quality.readInput());
+        this.text = blessed.textbox({
+            parent: this,
+            top: 6,
+            left: 1,
+            height: 1,
+            width: 'shrink',
+            content: 'Leave empty to autodetect from path.'
+        });
+
+        this.livestreamer.on('focus', () => this.livestreamer.readInput());
+        this.ffmpeg.on('focus', () => this.ffmpeg.readInput());
+        this.ffprobe.on('focus', () => this.ffprobe.readInput());
 
         config.then((config) => {
-            this.quality.setValue(config.stream.quality);
-
-            if (config.stream.thumbnails === true) {
-                this.thumbnails.check();
-            }
-
-            if (config.stream.metadata === true) {
-                this.metadata.check();
-            }
+            this.livestreamer.setValue(config.paths.livestreamer || '');
+            this.ffmpeg.setValue(config.paths.ffmpeg || '');
+            this.ffprobe.setValue(config.paths.ffprobe || '');
 
             this.screen.render();
         });
@@ -88,7 +123,8 @@ class StreamConfig extends blessed.Form {
         // (but only when spawned with 'center'?)
         // moving it up the render stack seems to work around the bug, but the
         // cursor is still moved too far to the left
-        this.qualityLabel.setIndex(50); // ???
+        this.livestreamerLabel.setIndex(50); // ???
+        this.livestreamerLabel.setIndex(50); // ???
     }
 
     sanitize(data) {
@@ -96,10 +132,10 @@ class StreamConfig extends blessed.Form {
     }
 }
 
-class StreamConfigDialog extends StreamConfig {
+class CommandConfigDialog extends CommandConfig {
     constructor(options) {
         super(merge({
-            label: ' Stream Download Settings ',
+            label: ' Command Paths ',
             border: 'line',
             padding: { top: 1, left: 1, bottom: 1, right: 1 },
             height: 12
@@ -110,7 +146,7 @@ class StreamConfigDialog extends StreamConfig {
             keys: true,
             mouse: true,
             top: 6,
-            left: 10,
+            left: 15,
             width: 8,
             height: 1,
             content: 'Accept',
@@ -130,7 +166,7 @@ class StreamConfigDialog extends StreamConfig {
             keys: true,
             mouse: true,
             top: 6,
-            left: 20,
+            left: 25,
             width: 8,
             height: 1,
             content: 'Cancel',
@@ -145,10 +181,12 @@ class StreamConfigDialog extends StreamConfig {
             }
         });
 
-        this.on('focus', () => this.quality.focus());
+        this.on('focus', () => this.livestreamer.focus());
 
         this.submitButton.on('press', () => this.submit());
         this.cancelButton.on('press', () => this.cancel());
+
+        this.focus();
     }
 
     sanitize(data) {
@@ -157,11 +195,13 @@ class StreamConfigDialog extends StreamConfig {
         delete clone.cancel;
         delete clone.submit;
 
+        util.log(clone);
+
         return clone;
     }
 };
 
 module.exports = {
-    StreamConfig: StreamConfig,
-    StreamConfigDialog: StreamConfigDialog
+    CommandConfig: CommandConfig,
+    CommandConfigDialog: CommandConfigDialog
 };
