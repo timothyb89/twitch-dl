@@ -39,7 +39,7 @@ var save = function(c) {
         return;
     }
 
-    fs.writeFile(CONFIG_FILE, JSON.stringify(c), function(err) {
+    fs.writeFile(CONFIG_FILE, JSON.stringify(c, null, 4), function(err) {
         if (err) {
             log('Could not write config file to ', CONFIG_FILE);
         }
