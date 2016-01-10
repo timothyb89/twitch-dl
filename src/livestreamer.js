@@ -1,23 +1,15 @@
 'use strict';
 
 var EventEmitter = require('events');
-var child_process = require('child_process');
-var exec = child_process.exec;
-var spawn = child_process.spawn;
+var spawn = require('child_process').spawn;
+
+var config = require('./config');
 
 const STATUS_REGEX = /Written ([\d\.]+ [A-Z]B) \((\d+\w) @ ([\d\.]+ [A-Z]B\/s)\)/;
 const MAX_PROGRESS_HISTORY = 30;
 const MAX_CONCURRENT = 3;
 
-var livestreamer = new Promise(function(resolve, reject) {
-    exec('which livestreamer', function(err, stdout, stderr) {
-        if (err) {
-            reject();
-        }
-
-        resolve(stdout.trim());
-    });
-});
+var livestreamer = config.resolve('livestreamer');
 
 /**
  * A Downloader that uses livestreamer to locally store twitch VODs.

@@ -3,6 +3,7 @@
 var os = require('os');
 var fs = require('fs');
 var path = require('path');
+var exec = require('child_process').exec;
 
 const HOME = os.homedir();
 const CONFIG_FILE = path.join(HOME, '.twitch-dl');
@@ -11,6 +12,11 @@ var log = require('./ui/util').log;
 
 var defaults = function() {
     return {
+        paths: {
+            livestreamer: '',
+            ffmpeg: '',
+            ffprobe: ''
+        },
         stream: {
             quality: 'source',
             metadata: true,
@@ -46,7 +52,26 @@ var save = function(c) {
     });
 };
 
+var resolve = function(cmd) {
+    return config.then(function(c) {
+        if (c.paths[cmd]) {
+            return Promise.resolve(c.paths[cmd]);
+        } else {
+            return new Promise(function(resolve, reject) {
+                exec(`which ${cmd}`, function(err, stdout, stderr) {
+                    if (err) {
+                        reject();
+                    }
+
+                    resolve(stdout.trim());
+                });
+            });
+        }
+    });
+};
+
 config.save = save;
 config.defaults = defaults;
+config.resolve = resolve;
 
 module.exports = config;
