@@ -17,6 +17,9 @@ var defaults = function() {
             ffmpeg: '',
             ffprobe: ''
         },
+        encode: {
+            plugin: 'mp4-libx264'
+        },
         stream: {
             quality: 'source',
             metadata: true,

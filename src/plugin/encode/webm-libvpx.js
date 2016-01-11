@@ -1,6 +1,6 @@
 'use strict';
 
-const EncodePlugin = require('../context-plugin');
+const EncodePlugin = require('../encode-plugin');
 
 const DEFAULT_SIZE = '1280x720';
 
@@ -14,28 +14,27 @@ const getSize = function(ffprobe) {
     return DEFAULT_SIZE;
 };
 
-class MP430FpsPlugin extends EncodePlugin {
+class VP8Plugin extends EncodePlugin {
 
     constructor() {
         super();
 
-        this.name = 'mp4-30fps';
+        this.name = 'webm-vp8';
     }
 
     extension() {
-        return 'mp4';
+        return 'webm';
     }
 
     apply(ffmpeg, ffprobe, video) {
         return ffmpeg
-                .videoCodec('libx264')
+                .videoCodec('libvpx')
                 .size(getSize(ffprobe))
                 .fps(30)
                 .outputOptions('-crf 23')
-                .audioCodec('copy')
-                .outputOptions('-bsf:a aac_adtstoasc');
+                .audioCodec('copy');
     }
 
 }
 
-module.exports = MP430FpsPlugin;
+module.exports = VP8Plugin;

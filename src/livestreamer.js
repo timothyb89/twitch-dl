@@ -9,8 +9,6 @@ const STATUS_REGEX = /Written ([\d\.]+ [A-Z]B) \((\d+\w) @ ([\d\.]+ [A-Z]B\/s)\)
 const MAX_PROGRESS_HISTORY = 30;
 const MAX_CONCURRENT = 3;
 
-var livestreamer = config.resolve('livestreamer');
-
 /**
  * A Downloader that uses livestreamer to locally store twitch VODs.
  */
@@ -20,8 +18,8 @@ class Downloader extends EventEmitter {
      * Creates a Downloader. This immediately launches livestreamer (once it has
      * been resolved on from the system path) and will begin emitting progress
      * events.
-     * @param  {video}  video  the video to download
-     * @param  {string} output the output file path
+     * @param {video}  video  the video to download
+     * @param {string} output the output file path
      */
     constructor(video, output) {
         super();
@@ -32,7 +30,7 @@ class Downloader extends EventEmitter {
         this.finished = false;
         this.history = [];
 
-        livestreamer.then(path => {
+        config.resolve('livestreamer').then(path => {
             this.child = spawn(path, [video.url, 'source', '-o', output, '-f']);
             this.child.stderr.on('data', data => this._onDataErr(data));
             this.child.on('close', status => this._onClose(status));
@@ -43,7 +41,7 @@ class Downloader extends EventEmitter {
      * Called when the child process prints a line to stderr. If this matches
      * the `STATUS_REGEX`, parse it and emit a progress event.
      * @private
-     * @param  {Buffer} data the line of output from livestreamer
+     * @param {Buffer} data the line of output from livestreamer
      */
     _onDataErr(data) {
         var matches = STATUS_REGEX.exec(data.toString());
@@ -111,8 +109,8 @@ class DownloadManager extends EventEmitter {
      * the download will be added to a queue. A 'start' event will be fired when
      * the download actually starts; 'queue add' and 'queue remove' events will
      * be fired if the download is forced to wait.
-     * @param  {video}  video  the video to download via livestreamer
-     * @param  {string} output the path to the desired output file
+     * @param {video}  video  the video to download via livestreamer
+     * @param {string} output the path to the desired output file
      */
     start(video, output) {
         if (this.active.length > MAX_CONCURRENT) {
