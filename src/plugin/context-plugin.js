@@ -13,10 +13,10 @@ class ContextPlugin extends Plugin {
     /**
      * Suggest a filename for a particular video
      * @param  {video} video the video to generate a filename for
-     * @return {Promise|null} a promise yielding the suggested filename, or null
+     * @return {Promise} a promise yielding the suggested filename
      */
     suggestFilename(video) {
-        return null;
+        return Promise.resolve(null);
     }
 
 }

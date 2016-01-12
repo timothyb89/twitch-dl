@@ -21,13 +21,13 @@ class EncodeTask extends EventEmitter {
      * Creates and immediately starts a new encoding task.
      * @param {video}         video   the video to encode
      * @param {encodeOptions} options options for this task to override
-     *                                 configured defaults
+     *                                configured defaults
      */
     constructor(video, options) {
         super();
 
         this.video = video;
-        
+
         let ffmpegPromise = config.resolve('ffmpeg');
         let ffprobePromise = config.resolve('ffprobe');
         Promise.all([config, ffmpegPromise, ffprobePromise])
@@ -61,7 +61,6 @@ class EncodeTask extends EventEmitter {
             ff.on('progress', this.emit('progress', progress));
             ff.on('end', () => this._onEnd(options, name));
         });
-
     }
 
     /** @private */

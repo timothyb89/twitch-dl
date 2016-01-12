@@ -115,17 +115,7 @@ class ConfigEditor extends blessed.Box {
 
         this.on('focus', () => this.commands.focus());
 
-        let order = [ this.commands, this.stream ];
-        for (let el of order) {
-            let i = order.indexOf(el);
-            el.key('up', () => {
-                order[Math.max(0, i - 1)].focus();
-            });
-
-            el.key('down', () => {
-                order[Math.min(order.length - 1, i + 1)].focus();
-            });
-        }
+        util.focusOrder([ this.commands, this.stream ]);
     }
 }
 

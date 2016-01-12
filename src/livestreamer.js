@@ -1,9 +1,11 @@
 'use strict';
 
-var EventEmitter = require('events');
-var spawn = require('child_process').spawn;
+const EventEmitter = require('events');
+const spawn = require('child_process').spawn;
+const merge = require('merge');
 
-var config = require('./config');
+const config = require('./config');
+const util = require('./ui/util');
 
 const STATUS_REGEX = /Written ([\d\.]+ [A-Z]B) \((\d+\w) @ ([\d\.]+ [A-Z]B\/s)\)/;
 const MAX_PROGRESS_HISTORY = 30;
@@ -18,10 +20,11 @@ class Downloader extends EventEmitter {
      * Creates a Downloader. This immediately launches livestreamer (once it has
      * been resolved on from the system path) and will begin emitting progress
      * events.
-     * @param {video}  video  the video to download
-     * @param {string} output the output file path
+     * @param {video}  video   the video to download
+     * @param {string} output  the output file name (without extension)
+     * @param {object} options livestreamer config options
      */
-    constructor(video, output) {
+    constructor(video, output, options) {
         super();
 
         this.video = video;
@@ -30,8 +33,20 @@ class Downloader extends EventEmitter {
         this.finished = false;
         this.history = [];
 
-        config.resolve('livestreamer').then(path => {
-            this.child = spawn(path, [video.url, 'source', '-o', output, '-f']);
+        let cfgPromise = config;
+        let cmdPromise = config.resolve('livestreamer');
+
+        Promise.all([cfgPromise, cmdPromise]).then(values => {
+            let cfg = merge({}, values[0].stream, options);
+            let cmd = values[1];
+
+            this.child = spawn(cmd, [
+                video.url,
+                cfg.quality,
+                '-o', output + '.flv',
+                '-f'
+            ]);
+
             this.child.stderr.on('data', data => this._onDataErr(data));
             this.child.on('close', status => this._onClose(status));
         });
@@ -109,16 +124,17 @@ class DownloadManager extends EventEmitter {
      * the download will be added to a queue. A 'start' event will be fired when
      * the download actually starts; 'queue add' and 'queue remove' events will
      * be fired if the download is forced to wait.
-     * @param {video}  video  the video to download via livestreamer
-     * @param {string} output the path to the desired output file
+     * @param {video}  video   the video to download via livestreamer
+     * @param {string} output  the path to the desired output file
+     * @param {object} options the path to the desired output file
      */
-    start(video, output) {
+    start(video, output, options) {
         if (this.active.length > MAX_CONCURRENT) {
-            var dl = { video: video, output: output };
+            var dl = { video: video, output: output, options: options };
             this.queue.push(dl);
             this.emit('queue add', dl);
         } else {
-            this._start(video, output);
+            this._start(video, output, options);
         }
     }
 
@@ -126,8 +142,8 @@ class DownloadManager extends EventEmitter {
      * Actually starts a download.
      * @private
      */
-    _start(video, output) {
-        var dl = new Downloader(video, output);
+    _start(video, output, options) {
+        var dl = new Downloader(video, output, options);
         dl.on('progress', (progress) => this.emit('progress', progress));
 
         dl.on('finish', () => {
@@ -159,7 +175,7 @@ class DownloadManager extends EventEmitter {
 
         var dl = this.queue.shift();
         this.emit('queue remove', dl);
-        this._start(dl.video, dl.output);
+        this._start(dl.video, dl.output, dl.options);
     }
 
 };

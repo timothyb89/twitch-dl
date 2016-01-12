@@ -51,7 +51,13 @@ class VideoList extends blessed.Box {
                 top: 'center',
                 left: 'center'
             }, v);
+
+            dialog.on('destroy', () => this.list.focus());
+
+            dialog.focus();
         });
+
+        this.on('focus', () => this.list.focus());
     }
 
     /**

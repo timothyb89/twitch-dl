@@ -104,6 +104,8 @@ class DownloadQueue extends blessed.Box {
             this.activeHighlight = dl;
             this._updateSpark();
         });
+
+        this.on('focus', () => this.active.focus());
     }
 
     /**
@@ -151,7 +153,12 @@ class DownloadQueue extends blessed.Box {
         } else {
             let data = [];
             for (let progress of dl.history) {
-                data.push(qty(progress.speed).baseScalar);
+                let speed = progress.speed.replace('K', 'k');
+                try {
+                    data.push(qty(speed).baseScalar);
+                } catch (e) {
+                    util.log(`quantities.js couldn't parse: ${progress.speed}`);
+                }
             }
 
             let last = dl.history[dl.history.length - 1];

@@ -82,5 +82,18 @@ module.exports = {
         if (prompt) {
             prompt.input.apply(prompt, arguments);
         }
+    },
+
+    focusOrder: function(order) {
+        for (let el of order) {
+            let i = order.indexOf(el);
+            el.key('up', () => {
+                order[Math.max(0, i - 1)].focus();
+            });
+
+            el.key('down', () => {
+                order[Math.min(order.length - 1, i + 1)].focus();
+            });
+        }
     }
 };

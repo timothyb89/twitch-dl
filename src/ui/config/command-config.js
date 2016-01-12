@@ -96,13 +96,13 @@ class CommandConfig extends blessed.Form {
             }
         });
 
-        this.text = blessed.textbox({
+        this.text = blessed.text({
             parent: this,
             top: 6,
-            left: 1,
+            left: 15,
             height: 1,
             width: 'shrink',
-            content: 'Leave empty to autodetect from path.'
+            content: 'Leave empty to autodetect from PATH.'
         });
 
         this.livestreamer.on('focus', () => this.livestreamer.readInput());
@@ -138,14 +138,14 @@ class CommandConfigDialog extends CommandConfig {
             label: ' Command Paths ',
             border: 'line',
             padding: { top: 1, left: 1, bottom: 1, right: 1 },
-            height: 12
+            height: 14
         }, options));
 
         this.submitButton = blessed.button({
             parent: this,
             keys: true,
             mouse: true,
-            top: 6,
+            top: 8,
             left: 15,
             width: 8,
             height: 1,
@@ -165,7 +165,7 @@ class CommandConfigDialog extends CommandConfig {
             parent: this,
             keys: true,
             mouse: true,
-            top: 6,
+            top: 8,
             left: 25,
             width: 8,
             height: 1,
@@ -194,8 +194,6 @@ class CommandConfigDialog extends CommandConfig {
 
         delete clone.cancel;
         delete clone.submit;
-
-        util.log(clone);
 
         return clone;
     }
