@@ -3,6 +3,8 @@
 const EventEmitter = require('events');
 const spawn = require('child_process').spawn;
 const merge = require('merge');
+const fs = require('fs');
+const https = require('https');
 
 const config = require('./config');
 const util = require('./ui/util');
@@ -40,6 +42,14 @@ class Downloader extends EventEmitter {
             let cfg = merge({}, values[0].stream, options);
             let cmd = values[1];
 
+            if (cfg.metadata) {
+                this._saveMetadata();
+            }
+
+            if (cfg.thumbnails) {
+                this._saveThumbnails();
+            }
+
             this.child = spawn(cmd, [
                 video.url,
                 cfg.quality,
@@ -49,7 +59,49 @@ class Downloader extends EventEmitter {
 
             this.child.stderr.on('data', data => this._onDataErr(data));
             this.child.on('close', status => this._onClose(status));
+        }).catch(err => {
+            util.log(err);
         });
+    }
+
+    /** @private */
+    _saveMetadata() {
+        let path = this.output + '.json';
+        fs.writeFile(path, JSON.stringify(this.video, null, 4), function(err) {
+            if (err) {
+                util.log('Could not write video metadata to ' + path);
+            }
+        });
+    }
+
+    /** @private */
+    _saveThumbnail(url, index) {
+        let dest = fs.createWriteStream(`${this.output}-${index}.jpg`);
+        let req = https.get(url, response => {
+            response.pipe(dest);
+        }).on('error', err => {
+            fs.unlink(dest);
+
+            console.log(err);
+            util.log('Error saving thumbnail #' + index);
+        });
+    }
+
+    /** @private */
+    _saveThumbnails() {
+        if (this.video.thumbnails.length === 0) {
+            return;
+        }
+
+        // videos tend to get 4 thumbnails (if long enough)
+        // given intro/outro screens, prefer first and third thumbnails
+        // (but only save up to 2 regardless)
+        this._saveThumbnail(this.video.thumbnails[0].url, 1);
+        if (this.video.thumbnails.length >= 3) {
+            this._saveThumbnail(this.video.thumbnails[2].url, 2);
+        } else if (this.video.thumbnails.length >= 2) {
+            this._saveThumbnail(this.video.thumbnails[1].url, 2);
+        }
     }
 
     /**
