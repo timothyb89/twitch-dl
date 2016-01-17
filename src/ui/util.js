@@ -84,6 +84,12 @@ module.exports = {
         }
     },
 
+    refocus: function(target, elements) {
+        for (let el of elements) {
+            el.on('focus', () => target.focus());
+        }
+    },
+
     focusOrder: function(order) {
         for (let el of order) {
             let i = order.indexOf(el);

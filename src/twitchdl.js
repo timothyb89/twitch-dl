@@ -88,51 +88,8 @@ screens.forEach(function(s, index) {
 screens[0].show();
 util.postinit();
 
-var loadVideos = function(user) {
-    api.videos(user.name).query({broadcasts: 'true'}).end(function(response) {
-        if (response.code !== 200) {
-            util.display('Could not load videos!', -1, function() {
-                screen.destroy();
-                process.exit(0);
-            });
-        }
-
-        videos.setVideos(response.body.videos);
-
-        videos.list.focus();
-    });
-};
-
-var getUserData = function(user) {
-    if (!user) {
-        util.input('User?', '', function(err, value) {
-            if (!value) {
-                screen.destroy();
-                console.log('Okay, quitting!');
-                process.exit(0);
-            }
-
-            getUserData(value);
-        });
-        screen.render();
-        return;
-    }
-
-    api.user(user).end(function(response) {
-        if (response.code !== 200) {
-
-            util.display(
-                    `Invalid user '${user}', try again.`,
-                    err => getUserData(null));
-            return;
-        }
-
-        loadVideos(response.body);
-    });
-};
-
 var main = function() {
-    getUserData(argv.user);
+    videos.setUser(argv.user);
 
     screen.render();
 };
